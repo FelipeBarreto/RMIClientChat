@@ -49,6 +49,8 @@ public class ServerImpl extends UnicastRemoteObject implements IServer{
 			}
 		});
 		
+		serverUI.log("Server Started!");
+		
 	}
 	
 	private void configureRMI() {
@@ -94,6 +96,7 @@ public class ServerImpl extends UnicastRemoteObject implements IServer{
 		clients.put(id, client);
 		messagesCount.put(id, 0);
 		updateClientsList();
+		log("New Client: " + id);
 	}
 
 	@Override
@@ -102,6 +105,7 @@ public class ServerImpl extends UnicastRemoteObject implements IServer{
 			clients.remove(id);
 			messagesCount.remove(id);
 			updateClientsList();
+			log("Client " + id + " Left");
 		}
 		
 	}
@@ -111,6 +115,7 @@ public class ServerImpl extends UnicastRemoteObject implements IServer{
 		for(IClient client : clients.values()){
 			client.updateMessages(id, formatMessage(messagesCount.get(id), id, message));
 		}	
+		log("New Message from Client " + id);
 	}
 	
 	private String formatMessage(Integer integer, String id, String message) {
@@ -135,6 +140,16 @@ public class ServerImpl extends UnicastRemoteObject implements IServer{
 			}
 		}
 		
+	}
+	
+	private void log(final String text){
+		Platform.runLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				serverUI.log(text);
+			}
+		});
 	}
 
 }

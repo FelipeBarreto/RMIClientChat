@@ -17,14 +17,14 @@ import rmi.IClient;
 import rmi.IServer;
 import ui.ServerUI;
 
-public class ServerImpl extends UnicastRemoteObject implements IServer{
-	
+public class ServerImpl extends UnicastRemoteObject implements IServer {
+
 	private static final long serialVersionUID = 1L;
-	
+
 	private ServerUI serverUI;
-	
+
 	private final static int REGISTRY_PORT = 12123;
-	
+
 	private Map<String, IClient> clients;
 	private Map<String, Integer> messagesCount;
 
@@ -36,25 +36,24 @@ public class ServerImpl extends UnicastRemoteObject implements IServer{
 		messagesCount = new HashMap<>();
 	}
 
-	public void start(){
+	public void start() {
 		configureRMI();
-		
+
 		serverUI = new ServerUI();
 		serverUI.showUp(new EventHandler<WindowEvent>() {
-			
+
 			@Override
 			public void handle(WindowEvent event) {
 				stop();
-				
 			}
 		});
-		
+
 		serverUI.log("Server Started!");
-		
 	}
-	
+
 	private void configureRMI() {
 		registry = null;
+
 		try {
 			registry = LocateRegistry.createRegistry(REGISTRY_PORT);
 		} catch (RemoteException e) {
@@ -64,8 +63,8 @@ public class ServerImpl extends UnicastRemoteObject implements IServer{
 				System.out.println("RMI ERROR");
 				System.exit(0);
 			}
-		}	
-		
+		}
+
 		try {
 			registry.rebind("server", this);
 		} catch (RemoteException e) {
@@ -76,13 +75,14 @@ public class ServerImpl extends UnicastRemoteObject implements IServer{
 
 	private void stop() {
 		System.out.println("Server Stopped");
+		
 		try {
 			registry.unbind("server");
 		} catch (RemoteException | NotBoundException e) {
 			System.out.println("UNBIND ERROR");
 			System.exit(0);
 		}
-		
+
 		try {
 			UnicastRemoteObject.unexportObject(this, true);
 		} catch (NoSuchObjectException e) {
@@ -101,55 +101,52 @@ public class ServerImpl extends UnicastRemoteObject implements IServer{
 
 	@Override
 	public synchronized void unregister(String id) throws RemoteException {
-		if(clients.containsKey(id)){
+		if (clients.containsKey(id)) {
 			clients.remove(id);
 			messagesCount.remove(id);
 			updateClientsList();
 			log("Client " + id + " Left");
 		}
-		
 	}
 
 	@Override
 	public synchronized void sendMessage(String id, String message) throws RemoteException {
-		for(IClient client : clients.values()){
+		for (IClient client : clients.values()) {
 			client.updateMessages(id, formatMessage(messagesCount.get(id), id, message));
-		}	
+		}
 		log("New Message from Client " + id);
 	}
-	
+
 	private String formatMessage(Integer integer, String id, String message) {
-		String formatedMessage = "Mensagem " + integer + "- " + id + ": " + message;
+		String formatedMessage = "Mensagem " + integer + " - " + id + ": " + message;
 		return formatedMessage;
 	}
 
 	private void updateClientsList() {
 		Platform.runLater(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				serverUI.updateClientList(clients.keySet());
 			}
 		});
-		
-		for(IClient client : clients.values()){
+
+		for (IClient client : clients.values()) {
 			try {
 				client.updateClients(new ArrayList<String>(clients.keySet()));
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			}
 		}
-		
 	}
-	
-	private void log(final String text){
+
+	private void log(final String text) {
 		Platform.runLater(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				serverUI.log(text);
 			}
 		});
 	}
-
 }

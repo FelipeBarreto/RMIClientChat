@@ -3,6 +3,7 @@ package ui;
 import java.util.Set;
 
 import client.ClientImpl;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -18,8 +19,8 @@ import javafx.stage.WindowEvent;
 
 public class ClientUI extends Pane {
 
-	private final static float PREF_WIDTH = 600;
-	private final static float PREF_HEIGHT = 390;
+	private final static float PREF_WIDTH = 670;
+	private final static float PREF_HEIGHT = 550;
 
 	private final static String CSS_PATH = System.class.getResource("/application.css").toExternalForm();
 
@@ -29,11 +30,16 @@ public class ClientUI extends Pane {
 
 	private ListView<String> clientsList;
 	private TextArea messageView;
+	private TextArea messageSend;
+	private String id;
+
+	public ClientUI(String id) {
+		this.id = id;
+	}
 
 	public void showUp(EventHandler<WindowEvent> exitCallback) {
 		configureStage(exitCallback);
 
-		addListView();
 		addMessageView();
 		addLabels();
 		addButtons();
@@ -46,7 +52,7 @@ public class ClientUI extends Pane {
 
 		Scene scene = new Scene(this, PREF_WIDTH, PREF_HEIGHT);
 		scene.getStylesheets().add(CSS_PATH);
-		mStage.setTitle(TITLE);
+		mStage.setTitle(TITLE + " : " + id);
 		mStage.setScene(scene);
 
 		mStage.setOnCloseRequest(exitCallback);
@@ -54,8 +60,8 @@ public class ClientUI extends Pane {
 
 	private void addListView() {
 		clientsList = new ListView<>();
-		clientsList.setPrefSize(200, 300);
-		clientsList.setTranslateX(50);
+		clientsList.setPrefSize(150, 300);
+		clientsList.setTranslateX(460);
 		clientsList.setTranslateY(50);
 
 		getChildren().add(clientsList);
@@ -63,31 +69,44 @@ public class ClientUI extends Pane {
 
 	private void addMessageView() {
 		messageView = new TextArea();
-		messageView.setPrefSize(200, 300);
-		messageView.setTranslateX(300);
+		messageView.setPrefSize(400, 300);
+		messageView.setTranslateX(50);
 		messageView.setTranslateY(50);
+		messageView.setEditable(false);
 		
 		getChildren().add(messageView);
+		
+		messageSend = new TextArea();
+		messageSend.setPrefSize(500, 100);
+		messageSend.setTranslateX(50);
+		messageSend.setTranslateY(370);
+		
+		getChildren().add(messageSend);
 	}
 
 	private void addLabels() {
 		Text clients = new Text("Connected Clients");
-		clients.setX(85);
+		clients.setX(460);
 		clients.setY(30);
-
+				
 		getChildren().add(clients);
+		
+		Text messages = new Text("Messages");
+		messages.setX(50);
+		messages.setY(30);
+				
+		getChildren().add(messages);
 	}
 
 	private void addButtons() {	
 		Button sendMessage = new Button("Send");
-		sendMessage.setTranslateX(520);
-		sendMessage.setTranslateY(150);
+		sendMessage.setTranslateX(560);
+		sendMessage.setTranslateY(380);
 		sendMessage.setOnMouseClicked(new EventHandler<MouseEvent>() {
 
 			@Override
 			public void handle(MouseEvent event) {
-				System.out.println(messageView.getText());
-				ClientImpl.sendMessage("ok");
+				ClientImpl.sendMessage(id, messageSend.getText());
 			}
 		});
 
@@ -100,7 +119,20 @@ public class ClientUI extends Pane {
 		for (String id : clients) {
 			list.add(id);
 		}
+		
+		if(clientsList == null) 
+			addListView();
+		
+		Platform.runLater(new Runnable() {
 
-		clientsList.setItems(list);
+			@Override
+			public void run() {
+				clientsList.setItems(list);
+			}
+		});
+	}
+
+	public void updateMessages(String message) {
+		messageView.setText(messageView.getText() + "\n" + message);
 	}
 }

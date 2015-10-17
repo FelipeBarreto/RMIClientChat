@@ -25,15 +25,16 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
 
 	private final static int REGISTRY_PORT = 12123;
 
-	private Map<String, IClient> clients;
-	private Map<String, Integer> messagesCount;
+	public Map<String, IClient> clients;
+	//private Map<String, Integer> messagesCount;
+	private int messagesCount = 0;
 
 	private Registry registry;
 
 	public ServerImpl() throws RemoteException {
 		super();
 		clients = new HashMap<>();
-		messagesCount = new HashMap<>();
+		//messagesCount = new HashMap<>();
 	}
 
 	public void start() {
@@ -94,7 +95,7 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
 	@Override
 	public synchronized void register(String id, IClient client) throws RemoteException {
 		clients.put(id, client);
-		messagesCount.put(id, 0);
+		//messagesCount.put(id, 0);
 		updateClientsList();
 		log("New Client: " + id);
 	}
@@ -103,7 +104,7 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
 	public synchronized void unregister(String id) throws RemoteException {
 		if (clients.containsKey(id)) {
 			clients.remove(id);
-			messagesCount.remove(id);
+			//messagesCount.remove(id);
 			updateClientsList();
 			log("Client " + id + " Left");
 		}
@@ -111,9 +112,16 @@ public class ServerImpl extends UnicastRemoteObject implements IServer {
 
 	@Override
 	public synchronized void sendMessage(String id, String message) throws RemoteException {
+		//System.out.println(formatMessage(messagesCount.get(id), id, message));
+		System.out.println(formatMessage(messagesCount, id, message));
+		
 		for (IClient client : clients.values()) {
-			client.updateMessages(id, formatMessage(messagesCount.get(id), id, message));
+			client.updateMessages(id, id + " : " +  message);
 		}
+		
+		//messagesCount.replace(id, messagesCount.get(id) + 1); // update count
+		messagesCount++;
+		
 		log("New Message from Client " + id);
 	}
 

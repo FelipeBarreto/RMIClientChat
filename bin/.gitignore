@@ -1,7 +1,6 @@
-/application/
 /application.css
+/application/
+/client/
 /rmi/
 /server/
-/tests/
 /ui/
-/client/

@@ -11,6 +11,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
@@ -73,14 +75,33 @@ public class ClientUI extends Pane {
 		messageView.setTranslateX(50);
 		messageView.setTranslateY(50);
 		messageView.setEditable(false);
-		
+
 		getChildren().add(messageView);
-		
+
 		messageSend = new TextArea();
 		messageSend.setPrefSize(500, 100);
 		messageSend.setTranslateX(50);
 		messageSend.setTranslateY(370);
-		
+		messageSend.setOnKeyPressed(new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent event) {
+				if (event.getCode().equals(KeyCode.ENTER)) {
+					if (messageSend.getText().length() > 0) {
+						ClientImpl.sendMessage(id, messageSend.getText());
+					}
+					Platform.runLater(new Runnable() {
+
+						@Override
+						public void run() {
+							messageSend.clear();
+
+						}
+					});
+				}
+			}
+		});
+
 		getChildren().add(messageSend);
 	}
 
@@ -88,17 +109,17 @@ public class ClientUI extends Pane {
 		Text clients = new Text("Connected Clients");
 		clients.setX(460);
 		clients.setY(30);
-				
+
 		getChildren().add(clients);
-		
+
 		Text messages = new Text("Messages");
 		messages.setX(50);
 		messages.setY(30);
-				
+
 		getChildren().add(messages);
 	}
 
-	private void addButtons() {	
+	private void addButtons() {
 		Button sendMessage = new Button("Send");
 		sendMessage.setTranslateX(560);
 		sendMessage.setTranslateY(380);
@@ -106,7 +127,10 @@ public class ClientUI extends Pane {
 
 			@Override
 			public void handle(MouseEvent event) {
-				ClientImpl.sendMessage(id, messageSend.getText());
+				if (messageSend.getText().length() > 0) {
+					ClientImpl.sendMessage(id, messageSend.getText());
+					messageSend.clear();
+				}
 			}
 		});
 
@@ -119,10 +143,10 @@ public class ClientUI extends Pane {
 		for (String id : clients) {
 			list.add(id);
 		}
-		
-		if(clientsList == null) 
+
+		if (clientsList == null)
 			addListView();
-		
+
 		Platform.runLater(new Runnable() {
 
 			@Override
@@ -133,6 +157,6 @@ public class ClientUI extends Pane {
 	}
 
 	public void updateMessages(String message) {
-		messageView.setText(messageView.getText() + "\n" + message);
+		messageView.appendText(message + "\n");
 	}
 }

@@ -1,17 +1,17 @@
 package application;
 
 import java.rmi.RemoteException;
-import java.util.Set;
 
 import client.ClientImpl;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -20,7 +20,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import server.ServerImpl;
 
 public class Launcher extends Application {
 
@@ -29,7 +28,8 @@ public class Launcher extends Application {
 	Label userName;
 	TextField userTextField;
 	Button btn;
-	ServerImpl server;
+
+	ClientImpl client;
 
 	public static void main(String[] args) {
 		launch(args);
@@ -38,10 +38,10 @@ public class Launcher extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			server = new ServerImpl();
-			server.start();
-		} catch (RemoteException e) {
-			e.printStackTrace();
+			client = new ClientImpl();
+		} catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 
 		addLogin(primaryStage);
@@ -59,16 +59,18 @@ public class Launcher extends Application {
 
 			@Override
 			public void handle(ActionEvent event) {
-				//((Node) (event.getSource())).getScene().getWindow().hide();
-				
-				if(!server.clients.containsKey(userTextField.getText())) {
-					try {
-						new ClientImpl(userTextField.getText()).start();
-					} catch (RemoteException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}				
+
+				client.setName(userTextField.getText());
+				if (client.start()) {
+					((Node) (event.getSource())).getScene().getWindow().hide();
+				} else {
+					Alert alert = new Alert(AlertType.ERROR);
+					alert.setTitle("Login Failed");
+					alert.setHeaderText(null);
+					alert.setContentText("Username already in use by another client");
+					alert.showAndWait();
 				}
+
 			}
 		});
 
@@ -87,6 +89,6 @@ public class Launcher extends Application {
 		Scene scene = new Scene(grid, 300, 275);
 		primaryStage.setTitle("Chat Login");
 		primaryStage.setScene(scene);
-    	primaryStage.show();
-    }	
+		primaryStage.show();
+	}
 }

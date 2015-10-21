@@ -5,7 +5,7 @@ import java.rmi.RemoteException;
 
 public interface IServer extends Remote {
 
-	public void register(String id, IClient client) throws RemoteException;
+	public boolean register(String id, IClient client) throws RemoteException;
 
 	public void unregister(String id) throws RemoteException;
 

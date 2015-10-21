@@ -8,18 +8,20 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import utils.Config;
 
 public class Launcher extends Application {
 
@@ -37,6 +39,7 @@ public class Launcher extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
+		Config.readConfigs();
 		try {
 			client = new ClientImpl();
 		} catch (RemoteException e1) {
@@ -47,30 +50,29 @@ public class Launcher extends Application {
 		addLogin(primaryStage);
 	}
 
-	private void addLogin(Stage primaryStage) {
+	private void addLogin(final Stage primaryStage) {
 		grid = new GridPane();
 		btn = new Button();
 		scenetitle = new Text("Welcome");
 		userName = new Label("Name:");
 		userTextField = new TextField();
+		userTextField.setOnKeyPressed(new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent event) {
+				if(event.getCode().equals(KeyCode.ENTER)){
+					login(primaryStage);
+				}
+				
+			}
+		});
 
 		btn.setText("Sign in");
 		btn.setOnAction(new EventHandler<ActionEvent>() {
 
 			@Override
 			public void handle(ActionEvent event) {
-
-				client.setName(userTextField.getText());
-				if (client.start()) {
-					((Node) (event.getSource())).getScene().getWindow().hide();
-				} else {
-					Alert alert = new Alert(AlertType.ERROR);
-					alert.setTitle("Login Failed");
-					alert.setHeaderText(null);
-					alert.setContentText("Username already in use by another client");
-					alert.showAndWait();
-				}
-
+				login(primaryStage);
 			}
 		});
 
@@ -90,5 +92,24 @@ public class Launcher extends Application {
 		primaryStage.setTitle("Chat Login");
 		primaryStage.setScene(scene);
 		primaryStage.show();
+	}
+
+	protected void login(Stage primaryStage) {
+		String name = userTextField.getText();
+		if(name.isEmpty()){
+			return;
+		}
+		
+		client.setName(name);
+		if (client.start()) {
+			primaryStage.close();
+		} else {
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Login Failed");
+			alert.setHeaderText(null);
+			alert.setContentText("Username already in use by another client");
+			alert.showAndWait();
+		}
+		
 	}
 }

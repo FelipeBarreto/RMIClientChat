@@ -15,6 +15,7 @@ import javafx.stage.WindowEvent;
 import rmi.IClient;
 import rmi.IServer;
 import ui.ClientUI;
+import utils.Config;
 
 public class ClientImpl extends UnicastRemoteObject implements IClient {
 
@@ -74,7 +75,7 @@ public class ClientImpl extends UnicastRemoteObject implements IClient {
 		registryRemote = null;
 		
 		try {
-			registryRemote = LocateRegistry.getRegistry("10.101.45.188", REGISTRY_PORT);
+			registryRemote = LocateRegistry.getRegistry(Config.serverIp, REGISTRY_PORT);
 		} catch (RemoteException e1) {
 			e1.printStackTrace();
 			System.exit(0);
